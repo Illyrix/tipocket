@@ -92,6 +92,7 @@ func (s *StateFlow) walkUpdateStmt(node *ast.UpdateStmt) *types.Table {
 	}
 	s.walkAssignmentList(&node.List, table)
 	s.walkExprNode(node.Where, table, nil)
+	s.walkHintList(node.TableHints[:], table)
 	// switch node := node.Where.(type) {
 	// case *ast.BinaryOperationExpr:
 	// 	s.walkBinaryOperationExpr(node, table)
@@ -109,6 +110,7 @@ func (s *StateFlow) walkInsertStmt(node *ast.InsertStmt) *types.Table {
 func (s *StateFlow) walkDeleteStmt(node *ast.DeleteStmt) *types.Table {
 	table := s.walkTableName(node.TableRefs.TableRefs.Left.(*ast.TableName), false, true)
 	s.walkExprNode(node.Where, table, nil)
+	s.walkHintList(node.TableHints[:], table)
 	return nil
 }
 

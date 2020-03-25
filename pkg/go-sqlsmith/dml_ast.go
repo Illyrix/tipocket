@@ -70,6 +70,8 @@ func (s *SQLSmith) updateStmt() ast.Node {
 		updateStmtNode.Where = ast.NewValueExpr(1, "", "")
 	}
 
+	updateStmtNode.TableHints = s.tableHintsExpr()
+
 	return &updateStmtNode
 }
 
@@ -97,6 +99,8 @@ func (s *SQLSmith) deleteStmt() ast.Node {
 	} else {
 		deleteStmtNode.Where = ast.NewValueExpr(1, "", "")
 	}
+
+	deleteStmtNode.TableHints = s.tableHintsExpr()
 
 	return &deleteStmtNode
 }
