@@ -81,6 +81,7 @@ func (s *StateFlow) walkSelectStmt(node *ast.SelectStmt) *types.Table {
 	s.walkOrderByClause(node.OrderBy, table)
 	// s.walkWhereClause(node.Where, table)
 	s.walkExprNode(node.Where, table, nil)
+	s.walkHintList(node.TableHints[:], table)
 	return table
 }
 
@@ -212,6 +213,13 @@ func (s *StateFlow) walkExprNode(node ast.ExprNode, table *types.Table, column *
 	return nil
 }
 
+func (s *StateFlow) walkHintList(hints []*ast.TableOptimizerHint, table *types.Table) *types.Table {
+	for i := range hints {
+		hints[i] = builtin.GenerateHintExpr(table)
+	}
+	return nil
+}
+
 func (s *StateFlow) walkColumnNameExpr(node *ast.ColumnNameExpr, table *types.Table) *types.Column {
 	column := table.RandColumn()
 	node.Name = &ast.ColumnName{
@@ -225,7 +233,7 @@ func (s *StateFlow) walkValueExpr(node *driver.ValueExpr, table *types.Table, co
 	if column != nil {
 		switch column.DataType {
 		case "varchar", "text":
-			node.SetString(util.GenerateStringItem())
+			node.SetString(util.GenerateStringItem(), "")
 			node.TexprNode.Type.Charset = "utf8mb4"
 			node.TexprNode.Type.Collate = "utf8mb4_bin"
 		case "int":
@@ -254,7 +262,7 @@ func (s *StateFlow) walkAssignmentList(list *[]*ast.Assignment, table *types.Tab
 				Table: model.NewCIStr(column.Table),
 				Name:  model.NewCIStr(column.Column),
 			},
-			Expr: ast.NewValueExpr(util.GenerateDataItem(column.DataType)),
+			Expr: ast.NewValueExpr(util.GenerateDataItem(column.DataType), "", ""),
 		}
 		*list = append(*list, &assignment)
 	}
@@ -293,9 +301,9 @@ func (s *StateFlow) makeList(columns []*types.Column) []ast.ExprNode {
 			continue
 		}
 		if column.Column == "uuid" {
-			list = append(list, ast.NewValueExpr(util.GetUUID()))
+			list = append(list, ast.NewValueExpr(util.GetUUID(), "", ""))
 		} else {
-			list = append(list, ast.NewValueExpr(util.GenerateDataItem(column.DataType)))
+			list = append(list, ast.NewValueExpr(util.GenerateDataItem(column.DataType), "", ""))
 		}
 	}
 	return list
